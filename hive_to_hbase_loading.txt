@@ -1,0 +1,68 @@
+CREATE TABLE crime(
+    `INCIDENT_NUMBER` string,
+    `OFFENSE_CODE` INT,
+    `OFFENSE_CODE_GROUP` string,
+    `OFFENSE_DESCRIPTION` string,
+    `DISTRICT` string,
+    `REPORTING_AREA` string,
+    `SHOOTING` INT,
+    `OCCURRED_ON_DATE` TIMESTAMP,
+    `YEAR` INT,
+    `MONTH` INT,
+    `DAY_OF_WEEK` string,
+    `HOUR` INT,
+    `UCR_PART` string,
+    `STREET` string,
+    `Lat` decimal(10, 8),
+    `Long` decimal(10, 8),
+    `Location` string);
+
+
+Create table crimeinternal(
+incident_number string,              	                    
+offense_code bigint,             	                    
+offense_code_group string,             	                    
+offense_description string,              	                    
+district string,            	                    
+reporting_area bigint,             	                    
+shooting string,              	                    
+occurred_on_date string,              	                    
+year bigint,             	                    
+month bigint,              	                    
+day_of_week string,              	                    
+hour bigint,              	                    
+ucr_part string,              	                    
+street string,              	                    
+lat double,             	                    
+long double,              	                    
+location string);
+
+load data inpath '/data/crime.csv' into table crime_forschema;
+
+INSERT OVERWRITE TABLE crimeinternal SELECT * FROM crime;
+
+Table to load the data into Hbase: hbase table is crime_hbase
+===============================
+Create table hbase_crime(
+incident_number string,
+offense_code bigint,
+offense_code_group string,
+offense_description string,
+district string,
+reporting_area bigint,
+shooting string,
+occurred_on_date string,
+year bigint,
+month bigint,
+day_of_week string,
+hour bigint,
+ucr_part string,
+street string,
+lat double,
+long double,
+location string)
+STORED BY 'org.apache.hadoop.hive.hbase.HBaseStorageHandler'
+WITH SERDEPROPERTIES ("hbase.columns.mapping" = ":key,cf:offense_code,cf:offense_code_group,cf:offense_description,cf:district,cf:reporting_area,cf:shooting,cf:occurred_on_date,cf:year,cf:month,cf:day_of_week,cf:hour,cf:ucr_part,cf:street,cf:lat,cf:long,cf:location")
+TBLPROPERTIES ("hbase.table.name" = "crime_hbase");
+
+INSERT INTO TABLE hbase_crime SELECT * FROM crime;
