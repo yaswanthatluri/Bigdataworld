@@ -1,0 +1,95 @@
+Sample data
+===============
+chevrolet chevelle malibu,18,8,307,130,3504,12,1970-01-01,A
+buick skylark 320,15,8,350,165,3693,11.5,1970-01-01,A
+plymouth satellite,18,8,318,150,3436,11,1970-01-01,A
+amc rebel sst,16,8,304,150,3433,12,1970-01-01,A
+ford torino,17,8,302,140,3449,10.5,1970-01-01,A
+
+Schema:
+==========
+Name,Miles_per_Gallon,Cylinders,Displacement,Horsepower,Weight_in_lbs,Acceleration,Year,Origin
+
+Created a file in hdfs
+===========================
+/data/txt.csv
+
+CREATE EXTERNAL TABLE IF NOT EXISTS cars_e_csv(
+        Name STRING, 
+        Miles_per_Gallon INT,
+        Cylinders INT,
+        Displacement INT,
+        Horsepower INT, 
+        Weight_in_lbs INT,
+        Acceleration DECIMAL,
+        Year DATE,
+        Origin CHAR(1))
+    COMMENT 'Data about cars from a public database'
+    ROW FORMAT DELIMITED
+    FIELDS TERMINATED BY ','
+    STORED AS TEXTFILE
+    location '/data/';
+
+Created a internal table to convert the csv data to ORC
+=================
+CREATE TABLE IF NOT EXISTS cars_i_orc(
+Name STRING, 
+Miles_per_Gallon INT,
+Cylinders INT,
+Displacement INT,
+Horsepower INT, 
+Weight_in_lbs INT,
+Acceleration DECIMAL,
+Year DATE,
+Origin CHAR(1))
+COMMENT 'Data about cars from a public database'
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+STORED AS ORC;
+
+convertion to ORC:
+===================
+INSERT OVERWRITE TABLE cars_i_orc SELECT * FROM cars_e_csv;
+
+ORC data:
+=============
+/user/hive/warehouse/myorc.db/cars_i_orc/000000_0
+
+To check the data foramt in ORC file:
+===============
+hive --orcfiledump /user/hive/warehouse/myorc.db/cars_i_orc/000000_0
+
+
+Output:
+===========
+Rows: 5
+Compression: ZLIB
+
+copying the orc file to s3://
+==============
+aws s3 cp 000000_0 s3://yash-east/orcdata/
+
+To check the data foramt in ORC file:
+==============
+hive --orcfiledump s3://yash-east/orcdata/000000_0
+
+
+Table created on s3(orc)
+===============
+CREATE EXTERNAL TABLE IF NOT EXISTS cars_s3_orc(
+        Name STRING, 
+        Miles_per_Gallon INT,
+        Cylinders INT,
+        Displacement INT,
+        Horsepower INT, 
+        Weight_in_lbs INT,
+        Acceleration DECIMAL,
+        Year DATE,
+        Origin CHAR(1))
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+STORED AS ORC
+LOCATION 's3://yash-east/orcdata/'
+tblproperties ("orc.compress"="ZLIB");
+
+
