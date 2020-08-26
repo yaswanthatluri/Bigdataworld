@@ -12,6 +12,23 @@ property setting at the time of Cluster Creation:
   }
 ]
 
+After the cluster creation:
+=====
+<property>
+   <name>hive.blobstore.optimizations.enabled</name>
+   <value>false</value>
+   <description>this property sets the staging to HDFS rather than s3</description>
+</property>
+
+Restart the below services:
+===
+sudo stop hive-server2
+sudo stop hive-hcatalog-server
+
+sudo start hive-hcatalog-server
+sudo start hive-server2
+
+
 Creating Internal Table:
 =========
 create Table createdfromspark_csv(
@@ -35,7 +52,7 @@ create Table createdfromspark_csv(
     ROW FORMAT DELIMITED
     FIELDS TERMINATED BY ','
     STORED AS TEXTFILE
-    LOCATION 's3://yaswanth-aug/';
+    LOCATION 's3://yaswanth-aug/data/crimedata/';
 
 Create External Table:
 =========
